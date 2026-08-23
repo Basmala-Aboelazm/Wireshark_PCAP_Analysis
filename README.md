@@ -149,10 +149,6 @@ The basic TFTP file transfer process is:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-<img width="1246" height="243" alt="image" src="https://github.com/user-attachments/assets/3b3811aa-66c5-414c-a221-5e339f5434e1" />
-
-
 # Simple Network Management Protocol (SNMP)
 
 ## Overview
@@ -386,3 +382,50 @@ Therefore, **SNMPv3 is preferred when secure SNMP management is required**.
 
 ---
 
+
+<img width="1246" height="243" alt="image" src="https://github.com/user-attachments/assets/3b3811aa-66c5-414c-a221-5e339f5434e1" />
+
+
+
+
+
+### SNMP Traffic Analysis
+
+**Classification:** Benign / Expected SNMP Monitoring Traffic
+
+#### Endpoints
+
+* **`172.31.19.54`** → Sends **GetRequest** messages. This is the **NMS (Network Management System) / Monitoring Station**.
+* **`172.31.19.73`** → Sends **GetResponse** messages. This is the **SNMP Agent / Monitored Device**.
+
+#### Observed Traffic Pattern
+
+```text
+100: .54 → .73  GetRequest   1.3.6.1.2.1.1.2.0
+101: .73 → .54  GetResponse  1.3.6.1.2.1.1.2.0
+
+102: .54 → .73  GetRequest   1.3.6.1.2.1.1.5.0
+                             1.3.6.1.2.1.1.6.0
+
+103: .73 → .54  GetResponse  ...
+
+...
+
+112-119: The same request/response sequence repeats
+```
+
+#### Analysis
+
+* The communication follows the expected **SNMP Manager → Agent → Manager** pattern.
+* `172.31.19.54` repeatedly queries `172.31.19.73` using **GetRequest** messages.
+* `172.31.19.73` responds to each request with a corresponding **GetResponse**.
+* The requested OIDs remain consistent across the observed requests.
+* The sequence from packets **100–111** is repeated again starting at **packet 112**, with the same OIDs and order.
+* This repeated behavior indicates a **periodic polling cycle**, which is typical of an NMS continuously monitoring a network device.
+* The polling interval appears to be approximately **one second** in the analyzed traffic.
+
+#### Conclusion
+
+The observed traffic is **consistent with legitimate SNMP monitoring activity**. The repeated GetRequest/GetResponse pattern indicates that `172.31.19.54` is periodically polling `172.31.19.73` to collect management information.
+
+**Classification: Benign / Expected Traffic**
