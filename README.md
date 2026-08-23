@@ -44,3 +44,19 @@ The capture spans **125 days** but contains only **1,483 packets**. This is inco
 
 The presence of **Telnet, Rlogin, Remote Shell (rsh), FTP, and TFTP** is significant because these protocols can transmit data, including potentially sensitive credentials, in **plaintext**. In a production environment, their use should be considered a **security finding** and remediated by migrating to secure alternatives such as **SSH, SFTP, and HTTPS**.
 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<img width="1280" height="758" alt="image" src="https://github.com/user-attachments/assets/78691715-af6f-49d0-ac62-2f1dea37b992" />
+
+### 3. Finding #1
+
+| **Field**                | **Value**                                                                                                |
+| ------------------------ | -------------------------------------------------------------------------------------------------------- |
+| **Classification**       | Reconnaissance — Port Scanning                                                                           |
+| **Source (Scanner)**     | `192.168.56.102`                                                                                         |
+| **Source Port**          | `46729` (constant across all attempts)                                                                   |
+| **Destination (Target)** | `192.168.56.101`                                                                                         |
+| **Destination Ports**    | Sequential/varied — `21, 22, 23, 53, 80, 110, 111, 113, 135, 139, 143, 443, 445, 5900, 8888`, and others |
+| **Confirmed Open Ports** | `22, 23, 80, 111, 135, 139, 445, 5900`                                                                   |
+
+
