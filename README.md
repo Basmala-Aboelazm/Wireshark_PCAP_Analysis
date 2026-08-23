@@ -477,8 +477,92 @@ NS ns2.patriots...
 
 ---
 
+<img width="1021" height="44" alt="image" src="https://github.com/user-attachments/assets/f16127c2-9b4d-4324-8c2b-5a93207366cc" />
 
 
+## Finding #5 — DHCP DORA Process
+
+**Classification:** Benign / Expected DHCP Traffic
+
+### Endpoints
+
+| Endpoint          | Role                               |
+| ----------------- | ---------------------------------- |
+| `0.0.0.0`         | DHCP client with no IP address yet |
+| `255.255.255.255` | Local network broadcast address    |
+| `192.168.0.1`     | DHCP Server                        |
+| `192.168.0.10`    | IP address offered to the client   |
+
+### Evidence
+
+```text
+Packet 144:
+0.0.0.0 → 255.255.255.255
+DHCP Discover
+Transaction ID: 0x3d1d
+
+Packet 145:
+192.168.0.1 → 192.168.0.10
+DHCP Offer
+Transaction ID: 0x3d1d
+
+Packet 146:
+0.0.0.0 → 255.255.255.255
+DHCP Request
+Transaction ID: 0x3d1e
+
+Packet 147:
+192.168.0.1 → 192.168.0.10
+DHCP ACK
+Transaction ID: 0x3d1e
+```
+
+### Analysis — DHCP DORA Process
+
+The observed traffic represents the standard **DHCP DORA process**, which consists of four steps:
+
+| Step         | Packet | Description                                                                 |
+| ------------ | -----: | --------------------------------------------------------------------------- |
+| **Discover** |    144 | The client broadcasts a request because it does not have an IP address yet. |
+| **Offer**    |    145 | The DHCP server offers the client the IP address `192.168.0.10`.            |
+| **Request**  |    146 | The client broadcasts a request to accept the offered IP address.           |
+| **ACK**      |    147 | The DHCP server confirms the IP assignment.                                 |
+
+### DHCP Flow
+
+```text
+Client                         DHCP Server
+  |                                 |
+  | DHCP Discover                   |
+  |-------------------------------> |
+  |                                 |
+  | DHCP Offer                      |
+  | <-------------------------------|
+  |      192.168.0.10               |
+  |                                 |
+  | DHCP Request                    |
+  |-------------------------------> |
+  |                                 |
+  | DHCP ACK                        |
+  | <-------------------------------|
+  |      IP assignment confirmed    |
+```
+
+### Conclusion
+
+The observed traffic follows the expected **DHCP DORA sequence** and does not show any obvious malicious behavior.
+
+The client initially uses `0.0.0.0` because it does not yet have a valid IP address, while `255.255.255.255` is used for broadcasting the DHCP messages on the local network.
+
+**Final Classification: Benign / Expected DHCP Traffic**
+
+### When DHCP Traffic Should Be Investigated
+
+Although this traffic is normal, the following patterns may indicate suspicious activity:
+
+* **Rogue DHCP Server:** An unauthorized DHCP server responds to client requests and provides potentially malicious gateway or DNS settings.
+* **DHCP Starvation:** A large number of DHCP Discover requests are generated using spoofed MAC addresses to exhaust the available IP address pool.
+* **Unexpected DHCP Activity:** DHCP traffic appears on a network segment where devices are expected to use static IP addresses.
 
 
 
