@@ -126,3 +126,26 @@ The basic TFTP file transfer process is:
 
 <img width="878" height="221" alt="image" src="https://github.com/user-attachments/assets/4d89f08c-4f62-4a29-857c-1385c4e2928b" />
 
+
+### 4. Finding #2 — TFTP File Transfer
+
+**Classification:** Benign / Expected Traffic
+
+| Field          | Value              |
+| -------------- | ------------------ |
+| Client         | `192.168.0.253`    |
+| Server         | `192.168.0.10`     |
+| File Requested | `rfc1350.txt`      |
+| Transfer Mode  | `octet`            |
+| Transfer Range | Block 1 → Block 49 |
+
+**Evidence:**
+
+* The traffic begins with a **TFTP Read Request (RRQ)** sent from `192.168.0.253` to the TFTP server at `192.168.0.10`.
+* The server then responds by sending **DATA blocks sequentially**, starting from Block 1.
+* The transfer continues through **Block 49**, with the expected acknowledgment (**ACK**) exchanged between the client and server.
+* The observed flow follows the normal TFTP pattern.
+* No obvious anomalies, retransmissions, or errors were observed in the reviewed traffic.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
