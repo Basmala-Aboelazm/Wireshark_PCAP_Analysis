@@ -423,10 +423,62 @@ The traffic is consistent with a **local LDAP bind and search test**, likely rel
 ---
 
 
+<img width="1245" height="27" alt="image" src="https://github.com/user-attachments/assets/bdccb4a1-a231-43d0-946b-9d1359624ddb" />
 
 
 
 
+## Finding #4 — DNS Query and Response Activity
+
+**Classification:** Benign / Expected DNS Traffic
+
+| Field            | Value              |
+| ---------------- | ------------------ |
+| Client           | `10.10.1.4`        |
+| DNS Server       | `10.10.1.1`        |
+| Query Type       | `A` (IPv4 Address) |
+| Requested Domain | `mail.patriots.in` |
+| Resolved IP      | `74.53.140.153`    |
+
+### Evidence
+
+```text
+Packet 141:
+10.10.1.4 → 10.10.1.1
+Standard query 0x7956
+A mail.patriots.in
+
+Packet 142:
+10.10.1.1 → 10.10.1.4
+Standard query response 0x7956
+
+A mail.patriots.in → CNAME patriots.in
+A patriots.in → 74.53.140.153
+NS ns2.patriots...
+```
+
+### Analysis
+
+1. **DNS Query**
+   Host `10.10.1.4` sent an **A record query** to the DNS server `10.10.1.1`, requesting the IPv4 address associated with `mail.patriots.in`.
+
+2. **DNS Response**
+   The DNS server successfully responded with the requested DNS information.
+
+3. **CNAME Record**
+   The response indicates that `mail.patriots.in` is a **CNAME (Canonical Name)** pointing to `patriots.in`.
+
+4. **A Record**
+   The domain `patriots.in` resolves to the IPv4 address:
+
+   ```text
+   74.53.140.153
+   ```
+
+5. **NS Record**
+   The response also contains an **NS (Name Server)** record identifying an authoritative name server for the domain.
+
+---
 
 
 
