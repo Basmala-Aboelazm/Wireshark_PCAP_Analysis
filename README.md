@@ -149,3 +149,240 @@ The basic TFTP file transfer process is:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+<img width="1246" height="243" alt="image" src="https://github.com/user-attachments/assets/3b3811aa-66c5-414c-a221-5e339f5434e1" />
+
+
+# Simple Network Management Protocol (SNMP)
+
+## Overview
+
+**SNMP (Simple Network Management Protocol)** is an **application-layer protocol** used to monitor and manage network-connected devices in IP networks.
+
+SNMP allows a **Network Management System (NMS)** or **SNMP Manager** to communicate with an **SNMP Agent** running on devices such as:
+
+* Routers
+* Switches
+* Servers
+* Firewalls
+* Printers
+* Access Points
+
+SNMP is mainly used to **monitor network devices, collect information, detect faults, and manage device configurations**.
+
+### SNMP Ports
+
+SNMP uses **UDP**:
+
+| Port        | Purpose                        |
+| ----------- | ------------------------------ |
+| **UDP 161** | SNMP requests and responses    |
+| **UDP 162** | SNMP Traps and Inform messages |
+
+---
+
+# SNMP Architecture
+
+SNMP mainly consists of two components:
+
+### 1. SNMP Manager
+
+The **SNMP Manager** is responsible for monitoring and managing network devices.
+
+It can send requests such as:
+
+* GetRequest
+* GetNextRequest
+* SetRequest
+
+### 2. SNMP Agent
+
+The **SNMP Agent** runs on the managed device and collects information about the device.
+
+The Agent responds to requests from the Manager and can also send notifications when specific events occur.
+
+```text
+        SNMP Manager / NMS
+               |
+        UDP 161 / 162
+               |
+        SNMP Agent
+               |
+      Managed Network Device
+```
+
+---
+
+# SNMP Messages
+
+## 1. GetRequest
+
+A **GetRequest** is used by the SNMP Manager to retrieve the value of a specific object from the SNMP Agent.
+
+### Example
+
+The Manager may request the current CPU utilization of a router.
+
+```text
+Manager → Agent: GetRequest
+Agent → Manager: Response
+```
+
+---
+
+## 2. GetNextRequest
+
+A **GetNextRequest** is used to retrieve the next object in the **MIB (Management Information Base)**.
+
+It is commonly used when walking through tables or retrieving sequential OIDs.
+
+```text
+Manager → Agent: GetNextRequest
+Agent → Manager: Response
+```
+
+---
+
+## 3. SetRequest
+
+A **SetRequest** is used by the SNMP Manager to modify the value of an object on the SNMP Agent.
+
+For example, it can be used to change a configurable parameter on a network device.
+
+```text
+Manager → Agent: SetRequest
+Agent → Manager: Response
+```
+
+---
+
+## 4. Response
+
+A **Response** message is sent by the SNMP Agent in reply to a request from the Manager.
+
+It can contain:
+
+* The requested value
+* The newly configured value
+* An error message if the request failed
+
+```text
+Manager → Agent: GetRequest
+Agent → Manager: Response
+```
+
+---
+
+## 5. Trap
+
+A **Trap** is an unsolicited notification sent by the SNMP Agent to the SNMP Manager when a specific event occurs.
+
+The Manager does **not** need to request the Trap first.
+
+### Example
+
+If a network interface goes down:
+
+```text
+Agent → Manager: Trap
+Interface Down
+```
+
+Traps are normally sent using **UDP port 162**.
+
+> **Important:** A Trap does not require an acknowledgment from the Manager.
+
+---
+
+## 6. InformRequest
+
+**InformRequest** was introduced in **SNMPv2c**.
+
+It is similar to a Trap because it sends an unsolicited notification. However, an InformRequest **requires an acknowledgment** from the receiver.
+
+```text
+Agent → Manager: InformRequest
+Manager → Agent: Response (Acknowledgment)
+```
+
+### Trap vs InformRequest
+
+| Feature                  | Trap    | InformRequest |
+| ------------------------ | ------- | ------------- |
+| Unsolicited notification | Yes     | Yes           |
+| Requires acknowledgment  | No      | Yes           |
+| Reliability              | Lower   | Higher        |
+| Port                     | UDP 162 | UDP 162       |
+
+---
+
+# SNMP Communication
+
+### Monitoring a Device
+
+```text
+SNMP Manager
+     |
+     | GetRequest
+     ↓
+SNMP Agent
+     |
+     | Response
+     ↓
+SNMP Manager
+```
+
+### Reporting an Event
+
+```text
+SNMP Agent
+     |
+     | Trap / InformRequest
+     ↓
+SNMP Manager
+```
+
+---
+
+# Characteristics of SNMP
+
+* Used for **network monitoring and management**.
+* Helps detect **network and device faults**.
+* Collects information such as CPU usage, memory utilization, interface status, and network traffic.
+* Can be used to **configure remote devices** using SetRequest.
+* Provides a standardized way to manage devices from different vendors.
+* Uses **UDP** for communication.
+* Supports **SNMPv1, SNMPv2c, and SNMPv3**.
+
+---
+
+# Security Considerations
+
+SNMP security depends on the version being used.
+
+### SNMPv1 and SNMPv2c
+
+These versions use **community strings** for access control and do not provide encryption.
+
+Common default community strings include:
+
+```text
+public
+private
+```
+
+Using default or weak community strings can allow unauthorized users to obtain sensitive information about network devices.
+
+### SNMPv3
+
+**SNMPv3** provides stronger security features, including:
+
+* Authentication
+* Integrity protection
+* Encryption
+* Privacy
+
+Therefore, **SNMPv3 is preferred when secure SNMP management is required**.
+
+---
+
