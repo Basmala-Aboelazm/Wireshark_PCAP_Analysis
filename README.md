@@ -61,9 +61,6 @@ The presence of **Telnet, Rlogin, Remote Shell (rsh), FTP, and TFTP** is signifi
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<img width="1015" height="567" alt="image" src="https://github.com/user-attachments/assets/275d3eac-9192-4dd8-9d6a-f6c36f30d001" />
-
-
 # Trivial File Transfer Protocol (TFTP)
 
 ## Overview
@@ -125,4 +122,7 @@ The basic TFTP file transfer process is:
 
 ---
 
+<img width="1015" height="567" alt="image" src="https://github.com/user-attachments/assets/275d3eac-9192-4dd8-9d6a-f6c36f30d001" />
+
+<img width="878" height="221" alt="image" src="https://github.com/user-attachments/assets/4d89f08c-4f62-4a29-857c-1385c4e2928b" />
 
