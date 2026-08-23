@@ -28,15 +28,15 @@ The capture spans **125 days** but contains only **1,483 packets**. This is inco
 | **UDP**                 |         10.8% (160) | —                                                                |
 | **POP**                 |           5.1% (76) | **Highest byte share (23.3%)** — one large mail-download session |
 | **HTTP**                |           2.4% (36) | —                                                                |
-| **FTP**                 |           2.2% (33) | ⚠️ Unencrypted                                                   |
-| **Telnet**              |           3.5% (52) | ⚠️ Unencrypted                                                   |
-| **Rlogin**              |            0.3% (5) | ⚠️ Unencrypted                                                   |
-| **Remote Shell (rsh)**  |            0.1% (1) | ⚠️ Unencrypted                                                   |
+| **FTP**                 |           2.2% (33) | Unencrypted                                                   |
+| **Telnet**              |           3.5% (52) | Unencrypted                                                   |
+| **Rlogin**              |            0.3% (5) | Unencrypted                                                   |
+| **Remote Shell (rsh)**  |            0.1% (1) | Unencrypted                                                   |
 | **SSH**                 |            0.1% (1) | Secure remote access                                             |
 | **SMTP**                |           1.0% (15) | Email transmission                                               |
 | **SNMP**                |           1.3% (20) | Check for plaintext community strings                            |
 | **SMB / SMB2**          |           0.9% (13) | File and network resource sharing                                |
-| **TFTP**                |           3.4% (50) | ⚠️ Unauthenticated and plaintext                                 |
+| **TFTP**                |           3.4% (50) | Unauthenticated and plaintext                                 |
 | **DHCP / DNS / NTP**    |               Minor | Normal infrastructure traffic                                    |
 | **802.1Q VLAN Tagging** |                2.2% | Indicates a segmented network design                             |
 
@@ -301,43 +301,6 @@ Agent → Manager: InformRequest
 Manager → Agent: Response (Acknowledgment)
 ```
 
-### Trap vs InformRequest
-
-| Feature                  | Trap    | InformRequest |
-| ------------------------ | ------- | ------------- |
-| Unsolicited notification | Yes     | Yes           |
-| Requires acknowledgment  | No      | Yes           |
-| Reliability              | Lower   | Higher        |
-| Port                     | UDP 162 | UDP 162       |
-
----
-
-# SNMP Communication
-
-### Monitoring a Device
-
-```text
-SNMP Manager
-     |
-     | GetRequest
-     ↓
-SNMP Agent
-     |
-     | Response
-     ↓
-SNMP Manager
-```
-
-### Reporting an Event
-
-```text
-SNMP Agent
-     |
-     | Trap / InformRequest
-     ↓
-SNMP Manager
-```
-
 ---
 
 # Characteristics of SNMP
@@ -349,36 +312,6 @@ SNMP Manager
 * Provides a standardized way to manage devices from different vendors.
 * Uses **UDP** for communication.
 * Supports **SNMPv1, SNMPv2c, and SNMPv3**.
-
----
-
-# Security Considerations
-
-SNMP security depends on the version being used.
-
-### SNMPv1 and SNMPv2c
-
-These versions use **community strings** for access control and do not provide encryption.
-
-Common default community strings include:
-
-```text
-public
-private
-```
-
-Using default or weak community strings can allow unauthorized users to obtain sensitive information about network devices.
-
-### SNMPv3
-
-**SNMPv3** provides stronger security features, including:
-
-* Authentication
-* Integrity protection
-* Encryption
-* Privacy
-
-Therefore, **SNMPv3 is preferred when secure SNMP management is required**.
 
 ---
 
@@ -429,3 +362,94 @@ Therefore, **SNMPv3 is preferred when secure SNMP management is required**.
 The observed traffic is **consistent with legitimate SNMP monitoring activity**. The repeated GetRequest/GetResponse pattern indicates that `172.31.19.54` is periodically polling `172.31.19.73` to collect management information.
 
 -----
+
+
+<img width="1246" height="154" alt="image" src="https://github.com/user-attachments/assets/355bf82f-63c6-48cb-b10e-6c825bb57ba5" />
+
+
+## Finding #3 — LDAP Bind/Search Activity (Localhost)
+
+**Classification:** Benign / Synthetic Test Traffic
+
+| Field         | Value                               |
+| ------------- | ----------------------------------- |
+| Source        | `127.0.0.1` (localhost)             |
+| Destination   | `127.0.0.1` (localhost)             |
+| Port          | `389` (LDAP)                        |
+| Bind DN       | `<ROOT>`                            |
+| Bind Type     | Simple Bind                         |
+| Bind Result   | Success                             |
+| Search Scope  | `wholeSubtree`                      |
+| Search Result | `noSuchObject` — 0 results returned |
+
+### Evidence
+
+```text
+128-130: TCP 3-way handshake (40848 → 389)
+131:     bindRequest(1) "<ROOT>" simple
+133:     bindResponse(1) success
+135:     searchRequest(2) "<ROOT>" wholeSubtree
+136:     searchResDone(2) noSuchObject [0 results]
+137:     unbindRequest(3)
+138-140: TCP teardown
+```
+
+### Analysis
+
+The observed traffic represents an LDAP bind followed by a directory search over the local host.
+
+A potential question during the investigation was whether this activity could represent an attacker attempting to obtain a root or administrator password through LDAP.
+
+The traffic was classified as **benign / synthetic test traffic** for the following reasons:
+
+1. **`<ROOT>` is not necessarily a username or root account.**
+   In LDAP, a root search base refers to the top of the directory tree. The literal `<ROOT>` value, especially when presented as a placeholder, strongly suggests sample or test traffic rather than a real production directory entry.
+
+2. **No evidence of credential compromise was observed.**
+   The bind operation returned `success`, but the capture does not provide evidence that credentials were successfully extracted or exfiltrated.
+
+3. **The LDAP search returned no results.**
+   The server returned `noSuchObject`, with **0 results**, meaning that no directory information such as users, groups, or other objects was successfully retrieved.
+
+4. **Source and destination are both `127.0.0.1`.**
+   This indicates communication between processes on the same host rather than traffic between an external attacker and a remote LDAP server.
+
+### Conclusion
+
+The traffic is consistent with a **local LDAP bind and search test**, likely related to development, testing, or protocol demonstration activity rather than an active attack.
+
+**Final Classification: Benign / Synthetic Test Traffic**
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
