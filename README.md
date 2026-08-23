@@ -475,9 +475,6 @@ NS ns2.patriots...
    74.53.140.153
    ```
 
-5. **NS Record**
-   The response also contains an **NS (Name Server)** record identifying an authoritative name server for the domain.
-
 ---
 
 
