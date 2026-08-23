@@ -1,6 +1,7 @@
 # Wireshark_PCAP_Analysis
 
-![Uploading image.png…]()
+<img width="844" height="258" alt="image" src="https://github.com/user-attachments/assets/ba97dd2b-0c41-4c5d-b7b0-992a1a72d614" />
+
 
 1. Capture Overview
 Property	Value
