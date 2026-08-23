@@ -428,4 +428,4 @@ Therefore, **SNMPv3 is preferred when secure SNMP management is required**.
 
 The observed traffic is **consistent with legitimate SNMP monitoring activity**. The repeated GetRequest/GetResponse pattern indicates that `172.31.19.54` is periodically polling `172.31.19.73` to collect management information.
 
-**Classification: Benign / Expected Traffic**
+-----
