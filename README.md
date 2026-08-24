@@ -564,8 +564,9 @@ Although this traffic is normal, the following patterns may indicate suspicious 
 * **DHCP Starvation:** A large number of DHCP Discover requests are generated using spoofed MAC addresses to exhaust the available IP address pool.
 * **Unexpected DHCP Activity:** DHCP traffic appears on a network segment where devices are expected to use static IP addresses.
 
+---
 
-
+<img width="1244" height="143" alt="image" src="https://github.com/user-attachments/assets/01c7269d-46f9-4125-a7a0-cbe6c7106c83" />
 
 
 
