@@ -779,7 +779,6 @@ Further investigation would be warranted if:
 
 <img width="1095" height="551" alt="image" src="https://github.com/user-attachments/assets/67ab9cbf-28c6-4e40-a475-a25213238b4f" />
 
-<img width="1076" height="196" alt="image" src="https://github.com/user-attachments/assets/abc916e4-70a2-4a69-91a9-4f9bc0cb53fd" />
 
 
 
@@ -873,6 +872,98 @@ Base64 ≠ Encryption
 Base64 only converts binary/text data into a different character representation. Anyone who captures the packet can decode it without needing an encryption key.
 
 
+------
+
+
+<img width="1076" height="196" alt="image" src="https://github.com/user-attachments/assets/abc916e4-70a2-4a69-91a9-4f9bc0cb53fd" />
+
+
+### POP3 Session Completion and Teardown
+
+The reviewed traffic continues the same POP3 session and confirms that the client successfully retrieved **all three messages** from the mailbox.
+
+### Evidence
+
+```text id="9z7v4p"
+254-255: Server → Client
+         Final DATA fragment
+         End of Message 1
+         Total: 56,922 octets
+
+257:     Client → Server
+         RETR 2
+
+259:     Server → Client
+         +OK 1034 octets
+         Message 2 retrieved
+
+260:     Client → Server
+         RETR 3
+
+262:     Server → Client
+         +OK 1053 octets
+         Message 3 retrieved
+
+263:     Client → Server
+         QUIT
+
+265:     Server → Client
+         +OK Logging out.
+
+266-269: TCP FIN/ACK teardown
+```
+
+### Analysis
+
+The client retrieved the three messages sequentially:
+
+| Message   | POP3 Command |            Size |
+| --------- | ------------ | --------------: |
+| Message 1 | `RETR 1`     | `56,922` octets |
+| Message 2 | `RETR 2`     |  `1,034` octets |
+| Message 3 | `RETR 3`     |  `1,053` octets |
+
+After downloading all three messages, the client sent:
+
+```text id="8b1y2v"
+QUIT
+```
+
+The server responded:
+
+```text id="fl9lpm"
++OK Logging out.
+```
+
+The TCP connection was then closed normally using a **FIN/ACK exchange**, indicating a clean session termination.
+
+### Final Assessment
+
+This traffic confirms that the POP3 session was a **complete and successful email retrieval session**, rather than a partial or interrupted transfer.
+
+The complete session demonstrates:
+
+1. Successful authentication using **`AUTH PLAIN`**.
+2. Authentication data transmitted without an observed TLS-protected session.
+3. Retrieval of **all three messages**.
+4. Successful transfer of the complete email contents.
+5. Normal logout using `QUIT`.
+6. Clean TCP connection termination.
+
+### Security Impact
+
+The completion of the session does not change the original security assessment. Instead, it provides additional evidence that the client successfully retrieved the entire mailbox over the unencrypted POP3 session.
+
+Therefore, the reviewed traffic indicates that:
+
+* Authentication information was exposed over the unencrypted session.
+* Email content was transmitted without observed encryption.
+* All three messages were successfully retrieved.
+* The session completed normally without errors or connection resets.
+
+**Final Classification: Security Finding / High Risk**
+
+**Recommendation:** Use **POP3S (TCP 995)** or enforce **STARTTLS** before authentication and email retrieval. Plaintext POP3 should not be used for sensitive communications in a production environment.
 
 
 
