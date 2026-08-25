@@ -1436,7 +1436,7 @@ These activities are consistent with a **penetration-testing workflow** against 
 
 <img width="1090" height="74" alt="image" src="https://github.com/user-attachments/assets/e25f56aa-6c4e-4070-889c-8eb6ea919e73" />
 
-## Finding #13 — TCP and UDP Port Scanning
+## Finding #13 — ICMP + UDP Activity — Part of the UDP Scan
 
 **Classification:** Expected Penetration Testing / Lab Activity
 
@@ -1445,37 +1445,32 @@ These activities are consistent with a **penetration-testing workflow** against 
 * **Scanner:** `192.168.56.102`
 * **Target:** `192.168.56.101`
 
-### Evidence
-
-The capture shows the same host performing both **TCP SYN scanning** and **UDP probing** against the Metasploitable2 target.
+### Packet Breakdown
 
 ```text
-TCP:
-192.168.56.102 → 192.168.56.101    SYN
-192.168.56.101 → 192.168.56.102    SYN-ACK / RST-ACK
+1218: ICMP Echo Request
+1219: ICMP Echo Reply
+
+1220: ICMP Echo Request
+1221: ICMP Echo Reply
+
+1222: UDP 48035 → 42619
 ```
 
-Open TCP ports identified include:
+### Analysis
 
-`22, 23, 80, 111, 135, 139, 445, 513, 5900`
+* **Packets 1218–1221:** ICMP Echo Request/Reply pairs used to check whether the target is reachable.
+* **Packet 1222:** UDP probe sent to port `42619`, forming part of the UDP port-scanning activity.
 
-A UDP probe was also observed:
+The following ICMP **Port Unreachable** response confirms that UDP port `42619` was closed.
 
-```text
-UDP 48035 → 42619
-        ↓
-ICMP Port Unreachable
-```
+### Conclusion
 
-This indicates that **UDP port 42619 was closed**.
+This traffic is consistent with **Nmap reconnaissance**, specifically host discovery followed by UDP port scanning.
 
-### Assessment
+Since the target `192.168.56.101` is a **Metasploitable2 lab VM**, the activity is considered expected penetration-testing traffic.
 
-The activity represents **automated network reconnaissance**, including TCP and UDP port scanning.
 
-Since `192.168.56.101` was identified as a **Metasploitable2 training VM**, the scanning is consistent with an authorized penetration-testing/lab exercise.
-
-**Final Classification:** `Expected Penetration Testing / Lab Activity`
 ------
 
 
