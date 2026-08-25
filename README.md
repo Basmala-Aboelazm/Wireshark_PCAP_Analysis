@@ -1629,11 +1629,4 @@ In this capture:
 * No single victim is being repeatedly targeted.
 * No unusually large responses are observed.
 
-### Conclusion
-
-The traffic is consistent with **legitimate NTP time synchronization**. Contacting multiple time servers is a common practice for improving **accuracy, reliability, and redundancy**.
-
-**Final Classification:** `Benign / Expected Infrastructure Traffic`
-
-
 -------
