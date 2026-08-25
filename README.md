@@ -1229,7 +1229,220 @@ There are no clear indicators of:
 * Exploitation attempts
 
 **Final Classification: Benign / Expected Traffic**
-----
+-------
 
 
+
+
+<img width="1027" height="277" alt="image" src="https://github.com/user-attachments/assets/6e50d42d-4060-49df-a3d6-bf8642c9be91" />
+<img width="1025" height="285" alt="image" src="https://github.com/user-attachments/assets/47b15534-00b7-4920-b166-35f4790c9a7b" />
+
+
+# Finding #11 — Large-Scale TCP Port Scan
+
+**Classification:** Reconnaissance — TCP Port Scanning
+
+## Endpoints
+
+| Field                | Value            |
+| -------------------- | ---------------- |
+| Source (Scanner)     | `192.168.56.102` |
+| Destination (Target) | `192.168.56.101` |
+| Source Port          | `46729`          |
+| Protocol             | TCP              |
+| Scan Type            | TCP SYN Scan     |
+
+## Evidence
+
+The capture shows `192.168.56.102` sending a large number of TCP SYN packets to different ports on `192.168.56.101`.
+
+The same source port (`46729`) is used throughout the scan.
+
+The observed pattern is:
+
+```text
+192.168.56.102 → 192.168.56.101    SYN
+192.168.56.101 → 192.168.56.102    SYN-ACK / RST-ACK
+192.168.56.102 → 192.168.56.101    RST
+```
+
+* **SYN-ACK** indicates that the destination port is open.
+* **RST-ACK** indicates that the destination port is closed.
+* After receiving a response, the scanner moves to the next port.
+
+## Extended Scan Activity
+
+The scan continues into packet numbers **1000+**, while an earlier part of the same scan was observed around packets **470–510**.
+
+Ports observed in this segment include:
+
+```text
+10628, 13722, 17988, 8200, 32768,
+9111, 31038, 27356, 34572, 1066,
+513, 32783
+```
+
+The large number of probes and very short intervals between them indicate an **automated and sustained port scan**, rather than a manual connection attempt.
+
+## Open Ports Identified
+
+The following ports were confirmed as open based on observed `SYN-ACK` responses:
+
+|   Port | Associated Service      |
+| -----: | ----------------------- |
+|   `22` | SSH                     |
+|   `23` | Telnet                  |
+|   `80` | HTTP                    |
+|  `111` | RPCbind                 |
+|  `135` | MS RPC                  |
+|  `139` | NetBIOS Session Service |
+|  `445` | SMB                     |
+|  `513` | rlogin                  |
+| `5900` | VNC                     |
+
+> **Note:** An open port only confirms that the service was reachable. It does not, by itself, prove successful authentication or exploitation.
+
+## Notable Observation — Port 513
+
+Port `513` is associated with **rlogin**.
+
+The scanner received a `SYN-ACK` from port `513`, confirming that the port was open and reachable during the capture.
+
+This is significant because rlogin is an older remote-access protocol that is generally considered insecure and should be avoided in modern environments.
+-----
+
+<img width="1182" height="442" alt="image" src="https://github.com/user-attachments/assets/95e180f4-7035-4306-ac8d-64c64bf3e4f6" />
+
+
+## Finding #12 — Service Enumeration and Metasploitable2 Identification
+
+**Classification:** Expected Penetration Testing / Lab Activity
+
+### Endpoints
+
+| Field                  | Value                        |
+| ---------------------- | ---------------------------- |
+| Scanner / Testing Host | `192.168.56.102`             |
+| Target                 | `192.168.56.101`             |
+| Target Hostname        | `metasploitable.localdomain` |
+| Environment            | Metasploitable2 Lab          |
+
+### Evidence
+
+The same source host previously observed performing the TCP port scan continued with **service enumeration and banner grabbing** against the target.
+
+```text
+1096: SSH
+      Server: SSH-2.0-OpenSSH_4.7p1 Debian-8ubuntu1
+
+1103: RSH
+      Server → Client data
+
+1108: SMTP
+      220 metasploitable.localdomain ESMTP Postfix (Ubuntu)
+
+1113: FTP
+      220 (vsFTPd 2.3.4)
+
+1116: FTP
+      500 OOPS:
+
+1118: FTP
+      vsf_sysutil_recv_peek: no data
+
+1122: HTTP
+      GET / HTTP/1.0
+```
+
+### Metasploitable2 Identification
+
+The SMTP banner contains:
+
+```text
+metasploitable.localdomain
+```
+
+This hostname is associated with the **Metasploitable2 intentionally vulnerable training VM**.
+
+The observed services also strongly support this identification, including:
+
+* `vsFTPd 2.3.4`
+* OpenSSH
+* RSH
+* SMTP/Postfix
+* HTTP
+* Telnet
+* SMB
+
+These are consistent with the deliberately exposed services found on Metasploitable2.
+
+### Banner Grabbing
+
+The activity demonstrates **service enumeration / banner grabbing**.
+
+The testing host is collecting information about the services running on the target, including:
+
+```text
+Service → Version / Software Information
+```
+
+For example:
+
+```text
+SSH  → OpenSSH_4.7p1
+FTP  → vsFTPd 2.3.4
+SMTP → Postfix (Ubuntu)
+```
+
+This information can help a penetration tester identify potential vulnerabilities and determine which services should be investigated further.
+
+### FTP Error Observation
+
+The FTP service also returned:
+
+```text
+500 OOPS:
+vsf_sysutil_recv_peek: no data
+```
+
+This indicates that the FTP server encountered an error while processing the interaction.
+
+The error is consistent with malformed-input or vulnerability-testing activity, but **the packet capture alone should not be used to claim that the vsFTPd backdoor was successfully exploited**.
+
+No successful shell or post-exploitation activity is established by these packets alone.
+
+### Correlation With Previous Findings
+
+The identification of the target as a Metasploitable2 lab system provides important context for the previous observations:
+
+```text
+TCP Port Scan
+      ↓
+Service Enumeration
+      ↓
+Anonymous FTP Login
+      ↓
+FTP Directory Enumeration
+      ↓
+Telnet / RSH Activity
+      ↓
+SMB Authentication Testing
+```
+
+These activities are consistent with a **penetration-testing workflow** against an intentionally vulnerable training machine.
+
+### Revised Overall Assessment
+
+The earlier findings should therefore be interpreted within the context of the lab environment.
+
+| Activity                | Previous Interpretation     | Revised Context                                   |
+| ----------------------- | --------------------------- | ------------------------------------------------- |
+| TCP Port Scan           | Suspicious reconnaissance   | Expected pentest reconnaissance                   |
+| FTP Anonymous Login     | Suspicious access           | Expected testing of an exposed service            |
+| FTP Directory Listing   | Suspicious enumeration      | Expected service enumeration                      |
+| Telnet Session          | Suspicious                  | Expected testing of exposed remote-access service |
+| SMB/NTLM Failure        | Potential credential attack | Likely authentication testing                     |
+| Service Banner Grabbing | Suspicious reconnaissance   | Expected vulnerability identification             |
+
+------
 
