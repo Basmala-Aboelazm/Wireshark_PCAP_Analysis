@@ -1482,7 +1482,7 @@ Since `192.168.56.101` was identified as a **Metasploitable2 training VM**, the 
 <img width="1243" height="386" alt="image" src="https://github.com/user-attachments/assets/12d2c521-147c-49dd-934c-b15bda987093" />
 
 
-## Finding #14 — Nmap TCP/UDP Scanning & Service Detection
+## Finding #14 — Nmap TCP Scanning & Service Detection
 
 **Classification:** Expected Penetration Testing / Lab Activity
 
