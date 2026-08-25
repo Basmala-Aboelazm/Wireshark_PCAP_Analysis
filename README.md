@@ -1060,10 +1060,77 @@ Because the same source and destination are involved, these events should be inv
 
 ---
 
+<img width="1244" height="315" alt="image" src="https://github.com/user-attachments/assets/28b107d7-5fe4-47de-a792-2f6e85f03192" />
 
 
+## Finding #9 — Telnet Interactive Session
+
+**Classification:** Suspicious / Requires Further Investigation
+
+### Endpoints
+
+| Field              | Value                                              |
+| ------------------ | -------------------------------------------------- |
+| Client             | `192.168.56.102`                                   |
+| Telnet Server      | `192.168.56.101`                                   |
+| Protocol           | Telnet                                             |
+| Port               | TCP 23                                             |
+| Source Correlation | Same source as previous port scan and FTP activity |
 
 
+### Analysis
+
+The traffic shows a **Telnet connection** established from `192.168.56.102` to `192.168.56.101` over TCP port `23`.
+
+The initial packets contain standard Telnet option negotiation, including:
+
+* Terminal Type
+* Terminal Speed
+* Window Size
+* Echo
+* Flow Control
+* X Display Location
+
+These negotiations are normal and are required to establish the characteristics of an interactive Telnet terminal.
+
+### Interactive Session Evidence
+
+Packet `357` contains approximately **620 bytes** of server-to-client data. Based on its position immediately after the Telnet negotiation, this is consistent with a **login banner, system message, or login prompt**.
+
+Starting from packet `359`, the traffic changes to repeated **small 1-byte exchanges** between the client and server.
+
+This pattern is characteristic of an **interactive Telnet terminal**, where keystrokes can be transmitted individually rather than being buffered into larger application-layer messages.
+
+```text id="0f0g8m"
+Server → Client: Login banner / prompt
+       ↓
+Client ↔ Server: Interactive character exchange
+```
+
+### Correlation With Previous Activity
+
+This activity is particularly significant because the source IP is the same:
+
+```text id="zq8a6u"
+192.168.56.102
+```
+
+The same host was previously observed:
+
+```text
+Port Scan
+     ↓
+FTP Connection
+     ↓
+Anonymous FTP Login
+     ↓
+FTP Directory Enumeration
+     ↓
+Telnet Connection
+```
+
+This creates a stronger behavioral correlation than analyzing the Telnet session in isolation.
+-----
 
 
 
