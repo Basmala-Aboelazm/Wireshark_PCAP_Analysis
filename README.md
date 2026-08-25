@@ -775,8 +775,118 @@ Further investigation would be warranted if:
 * The source host is also associated with other suspicious activity in the capture.
 
 
+---
+
+<img width="1095" height="551" alt="image" src="https://github.com/user-attachments/assets/67ab9cbf-28c6-4e40-a475-a25213238b4f" />
 
 
+## Finding #7 — Plaintext POP3 Credential and Email Exposure
+
+**Classification:** Security Finding / High Risk
+
+### Endpoints
+
+| Field                 | Value            |
+| --------------------- | ---------------- |
+| Client                | `10.0.2.15`      |
+| Mail Server           | `162.241.224.77` |
+| Protocol              | POP3             |
+| Port                  | `110`            |
+| Mail Server Software  | Dovecot          |
+| Authentication Method | `AUTH PLAIN`     |
+| Encryption            | None observed    |
+
+
+### Analysis
+
+The observed traffic shows a complete **POP3 email retrieval session** between `10.0.2.15` and `162.241.224.77`.
+
+The client successfully authenticated to the Dovecot mail server using:
+
+```text id="z7r3dr"
+AUTH PLAIN
+```
+
+The authentication data observed in the packet is **Base64-encoded**.
+
+> **Important:** Base64 is an encoding mechanism, not encryption. It can be easily decoded and does not protect credentials from someone capturing the traffic.
+
+No **STARTTLS** negotiation or encrypted POP3 session was observed before the authentication exchange.
+
+### Authentication Result
+
+The server responded:
+
+```text id="5n4mkw"
++OK Logged in.
+```
+
+This confirms that the authentication was **successful**.
+
+Therefore, the session exposed authentication material over an unencrypted POP3 connection.
+
+### Email Retrieval
+
+After successful authentication, the client performed several normal POP3 operations:
+
+1. **STAT** — Checked the mailbox status.
+2. **LIST** — Listed the available messages.
+3. **UIDL** — Retrieved unique message identifiers.
+4. **RETR 1** — Requested the first email.
+5. The server then transferred approximately **56,922 octets** of email content.
+
+The mailbox contained:
+
+```text
+3 messages
+59,009 bytes total
+```
+
+The `RETR 1` operation confirms that the client retrieved the actual email content, not just message metadata.
+
+### Security Impact
+
+This is a significant security issue because both **authentication data and email content** can be exposed to anyone capable of monitoring the network traffic.
+
+| Item                      | Assessment   |
+| ------------------------- | ------------ |
+| Protocol                  | POP3         |
+| Port                      | TCP 110      |
+| Authentication            | `AUTH PLAIN` |
+| Encryption                | Not observed |
+| Credentials exposed       | Yes          |
+| Authentication successful | Yes          |
+| Email content exposed     | Yes          |
+| Email retrieved           | Message 1    |
+
+### Why Base64 Is Not Encryption
+
+The authentication data in packet 173 is Base64-encoded.
+
+```text
+Base64 ≠ Encryption
+```
+
+Base64 only converts binary/text data into a different character representation. Anyone who captures the packet can decode it without needing an encryption key.
+
+### Conclusion
+
+The capture demonstrates a **successful plaintext POP3 authentication followed by email retrieval**.
+
+Because no TLS/STARTTLS negotiation was observed, the session does not adequately protect the authentication exchange or the email content from network interception.
+
+**Final Classification: Security Finding / High Risk**
+
+### Recommendation
+
+In a production environment:
+
+* Use **POP3S over TCP port 995** with TLS.
+* Alternatively, enforce **STARTTLS** before authentication on port 110.
+* Disable plaintext authentication when encryption is not active.
+* Avoid transmitting sensitive email credentials over unencrypted connections.
+* Verify whether `10.0.2.15` is authorized to communicate with the external mail server `162.241.224.77`.
+* Consider rotating the exposed credentials if this traffic originated from a real production environment.
 
 
 
