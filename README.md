@@ -1131,6 +1131,105 @@ Telnet Connection
 -----
 
 
+<img width="1235" height="410" alt="image" src="https://github.com/user-attachments/assets/1741e0fd-1caf-4670-a4e0-edd9180a1881" />
+
+
+## Finding #10 — SMTP Mail Submission / Connectivity Test
+
+**Classification:** Benign / Expected Traffic
+
+### Endpoints
+
+| Field           | Value                |
+| --------------- | -------------------- |
+| Client          | `192.168.110.9`      |
+| SMTP Server     | `80.154.108.237`     |
+| Server Hostname | `mail.webertest.net` |
+| Protocol        | SMTP                 |
+| Port            | TCP 25               |
+
+
+### Analysis
+
+The observed traffic follows the standard **SMTP mail submission sequence**:
+
+```text id="9d1qpm"
+HELO
+  ↓
+MAIL FROM
+  ↓
+RCPT TO
+  ↓
+DATA
+  ↓
+Message Accepted
+  ↓
+QUIT
+```
+
+The SMTP server successfully accepted the message and returned:
+
+```text id="6c2s8h"
+250 ok: Message 8725 accepted
+```
+
+The session then terminated normally using `QUIT`, followed by a clean TCP connection teardown.
+
+### Notable Observations
+
+#### 1. Null Sender
+
+The client used:
+
+```text id="1l8j8r"
+MAIL FROM: <>
+```
+
+An empty sender address is valid SMTP syntax and is commonly used for **bounce or delivery-status notifications**. It can also appear in automated testing and monitoring traffic.
+
+By itself, this does not indicate malicious activity.
+
+#### 2. Synthetic Test Message
+
+The message subject was:
+
+```text id="a5i9gq"
+SMTP Ping
+```
+
+The body contained a repetitive test pattern:
+
+```text id="z2v4hh"
+AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPPQQRRSSTTUUVVWWXXYYZZ...
+```
+
+The combination of a test-oriented subject and repetitive payload strongly suggests that this was a **synthetic SMTP connectivity or mail-server health test**, rather than a normal user-generated email.
+
+#### 3. Successful Delivery
+
+The SMTP server accepted the message successfully:
+
+```text id="1e7w4c"
+250 ok: Message 8725 accepted
+```
+
+This confirms that the SMTP transaction completed successfully.
+
+### Conclusion
+
+The traffic represents a **normal and successful SMTP transaction**, most likely generated as an automated mail-server connectivity or health check.
+
+There are no clear indicators of:
+
+* Spam activity
+* Malware delivery
+* Suspicious attachments
+* Authentication bypass
+* SMTP command abuse
+* Exploitation attempts
+
+**Final Classification: Benign / Expected Traffic**
+----
 
 
 
