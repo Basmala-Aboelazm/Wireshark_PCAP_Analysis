@@ -779,6 +779,9 @@ Further investigation would be warranted if:
 
 <img width="1095" height="551" alt="image" src="https://github.com/user-attachments/assets/67ab9cbf-28c6-4e40-a475-a25213238b4f" />
 
+<img width="1076" height="196" alt="image" src="https://github.com/user-attachments/assets/abc916e4-70a2-4a69-91a9-4f9bc0cb53fd" />
+
+
 
 ## Finding #7 — Plaintext POP3 Credential and Email Exposure
 
