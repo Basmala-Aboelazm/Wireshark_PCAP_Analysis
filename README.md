@@ -1431,18 +1431,49 @@ SMB Authentication Testing
 
 These activities are consistent with a **penetration-testing workflow** against an intentionally vulnerable training machine.
 
-### Revised Overall Assessment
-
-The earlier findings should therefore be interpreted within the context of the lab environment.
-
-| Activity                | Previous Interpretation     | Revised Context                                   |
-| ----------------------- | --------------------------- | ------------------------------------------------- |
-| TCP Port Scan           | Suspicious reconnaissance   | Expected pentest reconnaissance                   |
-| FTP Anonymous Login     | Suspicious access           | Expected testing of an exposed service            |
-| FTP Directory Listing   | Suspicious enumeration      | Expected service enumeration                      |
-| Telnet Session          | Suspicious                  | Expected testing of exposed remote-access service |
-| SMB/NTLM Failure        | Potential credential attack | Likely authentication testing                     |
-| Service Banner Grabbing | Suspicious reconnaissance   | Expected vulnerability identification             |
-
 ------
+
+
+<img width="1090" height="74" alt="image" src="https://github.com/user-attachments/assets/e25f56aa-6c4e-4070-889c-8eb6ea919e73" />
+
+## Finding #13 — TCP and UDP Port Scanning
+
+**Classification:** Expected Penetration Testing / Lab Activity
+
+### Endpoints
+
+* **Scanner:** `192.168.56.102`
+* **Target:** `192.168.56.101`
+
+### Evidence
+
+The capture shows the same host performing both **TCP SYN scanning** and **UDP probing** against the Metasploitable2 target.
+
+```text
+TCP:
+192.168.56.102 → 192.168.56.101    SYN
+192.168.56.101 → 192.168.56.102    SYN-ACK / RST-ACK
+```
+
+Open TCP ports identified include:
+
+`22, 23, 80, 111, 135, 139, 445, 513, 5900`
+
+A UDP probe was also observed:
+
+```text
+UDP 48035 → 42619
+        ↓
+ICMP Port Unreachable
+```
+
+This indicates that **UDP port 42619 was closed**.
+
+### Assessment
+
+The activity represents **automated network reconnaissance**, including TCP and UDP port scanning.
+
+Since `192.168.56.101` was identified as a **Metasploitable2 training VM**, the scanning is consistent with an authorized penetration-testing/lab exercise.
+
+**Final Classification:** `Expected Penetration Testing / Lab Activity`
 
