@@ -919,6 +919,154 @@ The complete session demonstrates:
 5. Normal logout using `QUIT`.
 6. Clean TCP connection termination.
 
+-----
+
+
+
+
+<img width="1190" height="357" alt="image" src="https://github.com/user-attachments/assets/bc4c18b2-5f1a-4411-a01a-431067b19fdb" />
+
+
+<img width="1130" height="161" alt="image" src="https://github.com/user-attachments/assets/0e59bebf-0574-4403-addf-b62fbd527da6" />
+
+
+
+
+
+
+
+## Finding #8 — Anonymous FTP Access and Directory Enumeration
+
+**Classification:** Suspicious / Requires Investigation
+
+### Endpoints
+
+| Field            | Value                                  |
+| ---------------- | -------------------------------------- |
+| Client           | `192.168.56.102`                       |
+| FTP Server       | `192.168.56.101`                       |
+| Service          | FTP                                    |
+| Port             | TCP 21                                 |
+| FTP Server       | `vsFTPd 2.3.4`                         |
+| Authentication   | Anonymous FTP                          |
+| Access Confirmed | Successful login and directory listing |
+
+---
+
+### Session Overview
+
+The observed traffic shows an FTP session from `192.168.56.102` to `192.168.56.101`.
+
+The activity progressed from FTP service identification and anonymous authentication to successful directory enumeration.
+
+
+---
+
+## Analysis
+
+### 1. Successful Anonymous FTP Login
+
+The client authenticated using the standard anonymous FTP sequence:
+
+```text id="d3q0wl"
+USER anonymous
+PASS password
+```
+
+The server responded:
+
+```text id="j8z3xu"
+230 Login successful.
+```
+
+This confirms that the FTP server permits **anonymous authentication**.
+
+Anonymous FTP can be legitimate in some environments, but it should be explicitly authorized and appropriately restricted. If unauthorized, it can allow users to access files without providing valid credentials.
+
+---
+
+### 2. FTP Server Version
+
+The server banner identifies the software as:
+
+```text id="t7x1mc"
+vsFTPd 2.3.4
+```
+
+This version is security-sensitive because a **trojanized/backdoored distribution of vsFTPd 2.3.4** was historically distributed and associated with **CVE-2011-2523**.
+
+However, the banner alone does **not** prove that this particular server contains the backdoored build.
+
+Therefore, the correct conclusion is:
+
+> The version should be verified and investigated, but the PCAP does not by itself prove exploitation or the presence of the backdoor.
+
+---
+
+### 3. Directory Enumeration
+
+The FTP session subsequently used a separate FTP **data connection** to transfer directory information.
+
+The server returned:
+
+```text id="q8j1h4"
+226 Directory send OK.
+```
+
+This response confirms that a **directory listing was successfully transferred**.
+
+FTP normally uses:
+
+* **Control connection:** TCP port 21 for commands and responses.
+* **Data connection:** A separate connection for directory listings and file transfers.
+
+Therefore, the activity progressed beyond authentication and successfully obtained information about the server's directory structure.
+
+### Important Distinction
+
+The capture confirms:
+
+```text
+Anonymous Login
+        ↓
+Successful Authentication
+        ↓
+Directory Listing
+        ↓
+Session Termination
+```
+
+However, there is **no evidence in the reviewed traffic of an actual file download using `RETR`**.
+
+Therefore, the capture confirms **directory enumeration**, but does not confirm file exfiltration.
+
+---
+
+## Correlation with Finding #1
+
+The source IP `192.168.56.102` was previously identified performing a **TCP port scan** against `192.168.56.101`.
+
+The subsequent FTP activity provides a useful correlation:
+
+```text
+Port Scan
+    ↓
+FTP Service Identified
+    ↓
+Anonymous FTP Login
+    ↓
+Directory Enumeration
+    ↓
+Session Termination
+```
+
+This sequence is consistent with a **reconnaissance → service access → enumeration** pattern.
+
+Because the same source and destination are involved, these events should be investigated as part of the same activity rather than treated as completely unrelated events.
+
+---
+
+
 
 
 
