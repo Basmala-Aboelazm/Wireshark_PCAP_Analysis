@@ -882,37 +882,6 @@ Base64 only converts binary/text data into a different character representation.
 
 The reviewed traffic continues the same POP3 session and confirms that the client successfully retrieved **all three messages** from the mailbox.
 
-### Evidence
-
-```text id="9z7v4p"
-254-255: Server → Client
-         Final DATA fragment
-         End of Message 1
-         Total: 56,922 octets
-
-257:     Client → Server
-         RETR 2
-
-259:     Server → Client
-         +OK 1034 octets
-         Message 2 retrieved
-
-260:     Client → Server
-         RETR 3
-
-262:     Server → Client
-         +OK 1053 octets
-         Message 3 retrieved
-
-263:     Client → Server
-         QUIT
-
-265:     Server → Client
-         +OK Logging out.
-
-266-269: TCP FIN/ACK teardown
-```
-
 ### Analysis
 
 The client retrieved the three messages sequentially:
@@ -949,22 +918,6 @@ The complete session demonstrates:
 4. Successful transfer of the complete email contents.
 5. Normal logout using `QUIT`.
 6. Clean TCP connection termination.
-
-### Security Impact
-
-The completion of the session does not change the original security assessment. Instead, it provides additional evidence that the client successfully retrieved the entire mailbox over the unencrypted POP3 session.
-
-Therefore, the reviewed traffic indicates that:
-
-* Authentication information was exposed over the unencrypted session.
-* Email content was transmitted without observed encryption.
-* All three messages were successfully retrieved.
-* The session completed normally without errors or connection resets.
-
-**Final Classification: Security Finding / High Risk**
-
-**Recommendation:** Use **POP3S (TCP 995)** or enforce **STARTTLS** before authentication and email retrieval. Plaintext POP3 should not be used for sensitive communications in a production environment.
-
 
 
 
