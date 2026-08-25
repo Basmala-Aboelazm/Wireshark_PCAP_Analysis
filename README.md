@@ -568,6 +568,211 @@ Although this traffic is normal, the following patterns may indicate suspicious 
 
 <img width="1244" height="143" alt="image" src="https://github.com/user-attachments/assets/01c7269d-46f9-4125-a7a0-cbe6c7106c83" />
 
+## SMB and NTLM Overview
+
+### What is SMB?
+
+**SMB (Server Message Block)** is a network protocol used to provide **file and resource sharing** between computers over a network.
+
+SMB is commonly used in Windows environments for:
+
+* File and folder sharing
+* Accessing network shares
+* Printer sharing
+* Remote access to network resources
+
+SMB commonly operates over **TCP port 445**.
+
+### Example
+
+```text
+Client                         SMB Server
+192.168.199.132                192.168.199.133
+       |                              |
+       | Request access to share      |
+       |----------------------------->|
+       |                              |
+       | File / Resource Access       |
+       |<-----------------------------|
+```
+
+In the analyzed traffic:
+
+```text
+192.168.199.132 → 192.168.199.133:445
+```
+
+This indicates that the client is communicating with the SMB service on the server.
+
+---
+
+## What is NTLM?
+
+**NTLM (NT LAN Manager)** is a Microsoft authentication protocol used to authenticate users in Windows environments.
+
+When a client tries to access an SMB resource, **NTLM can be used to verify the user's identity**.
+
+NTLM uses a **challenge-response authentication mechanism**, meaning the user's password is not sent directly over the network.
+
+### NTLM Authentication Process
+
+```text
+Client                         Server
+  |                              |
+  | NTLMSSP_NEGOTIATE            |
+  |----------------------------->|
+  |                              |
+  | NTLMSSP_CHALLENGE            |
+  |<-----------------------------|
+  |                              |
+  | NTLMSSP_AUTH                 |
+  |----------------------------->|
+  |                              |
+  | Authentication Result        |
+  |<-----------------------------|
+```
+
+### 1. NTLMSSP_NEGOTIATE
+
+The client initiates the authentication process and indicates that it wants to use NTLM.
+
+### 2. NTLMSSP_CHALLENGE
+
+The server sends a **random challenge** to the client.
+
+### 3. NTLMSSP_AUTH
+
+The client sends an authentication response calculated using the server's challenge and password-derived information.
+
+The user's actual password is **not sent directly**.
+
+### 4. Authentication Result
+
+The server verifies the authentication response.
+
+If authentication succeeds:
+
+```text
+STATUS_SUCCESS
+```
+
+If authentication fails:
+
+```text
+STATUS_LOGON_FAILURE
+```
+
+---
+
+## SMB vs. NTLM
+
+The easiest way to understand the difference:
+
+| Technology  | Purpose                                                               |
+| ----------- | --------------------------------------------------------------------- |
+| **SMB**     | Provides access to network resources such as files and shared folders |
+| **NTLM**    | Provides authentication for the user accessing those resources        |
+| **TCP 445** | Common port used by SMB                                               |
+
+In the PCAP:
+
+```text
+SMB  → The protocol used for network resource access
+NTLM → The authentication mechanism used to verify the user
+```
+
+Therefore, when we observe **SMB + NTLM + `STATUS_LOGON_FAILURE`**, it means:
+
+> A client attempted to authenticate to an SMB server using NTLM, but the authentication attempt was rejected.
+
+---
+## Finding #6 — Failed SMB/NTLM Authentication Attempt
+
+**Classification:** Suspicious / Requires Further Investigation
+
+### Endpoints
+
+| Field                   | Value             |
+| ----------------------- | ----------------- |
+| Client                  | `192.168.199.132` |
+| SMB Server              | `192.168.199.133` |
+| Service                 | SMB               |
+| Port                    | `445`             |
+| Authentication Protocol | NTLM              |
+
+### Analysis
+
+The observed traffic represents an **NTLM authentication attempt over SMB** between two distinct hosts.
+
+The authentication process follows the standard NTLM challenge-response sequence:
+
+```text id="u7p5kc"
+Client → Server: NTLMSSP_NEGOTIATE
+Server → Client: NTLMSSP_CHALLENGE
+Client → Server: NTLMSSP_AUTH
+Server → Client: STATUS_LOGON_FAILURE
+```
+
+### Authentication Details
+
+1. **SMB Negotiation**
+   The client and server negotiate the SMB protocol dialect. The traffic transitions from the initial SMB negotiation to **SMB2**, which is normal.
+
+2. **NTLM Authentication Handshake**
+   The client initiates NTLM authentication using `NTLMSSP_NEGOTIATE`.
+
+3. **Server Challenge**
+   The server responds with `NTLMSSP_CHALLENGE`, providing a challenge value for the authentication process.
+
+4. **Client Authentication Response**
+   The client responds with `NTLMSSP_AUTH`, containing the username:
+
+```text
+DESKTOP-2AEFM7G\user
+```
+
+and the corresponding NTLM challenge-response data.
+
+5. **Authentication Failure**
+   The server returns:
+
+```text
+STATUS_LOGON_FAILURE
+```
+
+indicating that the authentication attempt was unsuccessful.
+
+6. **Connection Termination**
+   The connection is immediately terminated with a **RST, ACK**, and no additional authentication attempts are visible in the reviewed traffic.
+
+### Why This Is Suspicious
+
+Unlike local LDAP traffic, this communication occurs between **two separate network hosts**:
+
+```text
+192.168.199.132 → 192.168.199.133:445
+```
+
+A failed SMB authentication attempt can have several explanations, including:
+
+* A legitimate user entering an incorrect password.
+* A misconfigured service or application.
+* Brute-force or password-guessing activity.
+* Password spraying.
+* An attempted lateral movement operation.
+
+However, **a single failed authentication attempt is not sufficient evidence to confirm malicious activity**.
+
+### Indicators That Would Increase Suspicion
+
+Further investigation would be warranted if:
+
+* Multiple failed authentication attempts originate from `192.168.199.132`.
+* Multiple usernames are targeted from the same source.
+* The same source attempts authentication against multiple SMB hosts.
+* The activity occurs at an unusual time or from an unexpected workstation.
+* Windows Security Event **4625 (An account failed to log on)** confirms repeated failures.
+* The source host is also associated with other suspicious activity in the capture.
 
 
 
