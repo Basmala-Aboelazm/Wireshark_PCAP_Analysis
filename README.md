@@ -1476,4 +1476,195 @@ The activity represents **automated network reconnaissance**, including TCP and 
 Since `192.168.56.101` was identified as a **Metasploitable2 training VM**, the scanning is consistent with an authorized penetration-testing/lab exercise.
 
 **Final Classification:** `Expected Penetration Testing / Lab Activity`
+------
+
+
+<img width="1243" height="386" alt="image" src="https://github.com/user-attachments/assets/12d2c521-147c-49dd-934c-b15bda987093" />
+
+
+## Finding #14 — Nmap TCP/UDP Scanning & Service Detection
+
+**Classification:** Expected Penetration Testing / Lab Activity
+
+### Endpoints
+
+* **Scanner:** `192.168.56.102`
+* **Target:** `192.168.56.101`
+
+### Evidence
+
+The capture shows automated **Nmap reconnaissance**, including TCP/UDP scanning and HTTP service detection.
+
+```text
+1254: GET  /nmaplowercheck1645040178 HTTP/1.1
+1256: POST /sdk HTTP/1.1
+1257: 404 Not Found
+1261: GET  / HTTP/1.0
+1262: GET  /nmaplowercheck1645040178 HTTP/1.1
+1265: 404 Not Found
+1268: POST /sdk HTTP/1.1
+1278: 200 OK
+1285: 200 OK
+```
+
+The path:
+
+```text
+/nmaplowercheck1645040178
+```
+
+is a distinctive **Nmap service-detection probe**, confirming that Nmap was performing HTTP fingerprinting.
+
+The `/sdk` requests are also consistent with automated service detection of web-based services.
+
+### Services Identified
+
+The reconnaissance identified multiple services, including:
+
+`22, 23, 80, 111, 135, 139, 445, 513, 5900, 8180`
+
+Port **8180** returned successful HTTP responses, indicating an active web service.
+
+### Assessment
+
+The HTTP traffic is consistent with **automated Nmap service/version detection**, rather than manual browsing or exploitation.
+
+Combined with the previously observed TCP/UDP scans and service banners, this represents a systematic reconnaissance process against the Metasploitable2 target.
+
+**Final Classification:** `Expected Penetration Testing / Lab Activity`
+
+
+
+--------
+
+
+
+<img width="1142" height="396" alt="image" src="https://github.com/user-attachments/assets/d91c6914-5ad8-42a1-bbd6-bb5588b22b26" />
+
+
+## SMTP STARTTLS — Encrypted Mail Session
+
+**Classification:** Benign / Secure Configuration
+
+### Endpoints
+
+* **Client:** `2003:de:2016:125:fc36:8317:4e86:cb72`
+* **SMTP Server:** `2003:de:2016:120::a08:53`
+* **Port:** `25`
+* **Protocol:** SMTP over IPv6
+
+### Evidence
+
+```text
+1410: S: 220 ... ESMTP Postfix
+1411: C: EHLO
+1413: S: STARTTLS
+1414: C: STARTTLS
+1415: S: 220 Ready to start TLS
+1416: TLS 1.2 Client Hello
+1417: TLS 1.2 Server Hello + Certificate
+1418: TLS 1.2 Client Key Exchange
+1419+: TLS 1.2 Application Data (Encrypted)
+```
+
+### Analysis
+
+The SMTP server advertises **STARTTLS**, and the client successfully requests it. A **TLS 1.2 handshake** then takes place.
+
+After the handshake, the SMTP traffic appears as encrypted **Application Data**, so the actual email commands and message content are not visible in the capture.
+
+### Assessment
+
+This is a **benign and properly secured SMTP session**.
+
+**Conclusion:** The session demonstrates proper use of **STARTTLS to protect SMTP communications** and does not represent a security finding.
+
+-----
+
+
+
+<img width="900" height="359" alt="image" src="https://github.com/user-attachments/assets/56cf2667-ecdf-443f-951e-04040c9515a3" />
+
+## NTP Traffic Analysis
+
+### What is NTP?
+
+**NTP (Network Time Protocol)** is a network protocol used to **synchronize the clocks of computers and network devices** over a network.
+
+Accurate time is important for:
+
+* Log correlation and incident investigation
+* Authentication systems
+* Certificates
+* Network monitoring
+* Scheduling and system operations
+
+NTP commonly uses **UDP port 123**.
+
+### Classification
+
+**Benign / Expected Infrastructure Traffic**
+
+### Endpoint
+
+* **NTP Host:** `192.168.50.50`
+* **External NTP Servers:** 14 different public IP addresses
+
+### Evidence
+
+```text
+1440–1454: 192.168.50.50 → Multiple NTP Servers
+            NTP Symmetric Active
+
+1455–1469: Multiple NTP Servers → 192.168.50.50
+            NTP Symmetric Passive
+```
+
+### Analysis
+
+`192.168.50.50` contacted multiple external NTP servers in rapid succession, and each server responded.
+
+This behavior is consistent with **time synchronization using multiple time sources** for accuracy and redundancy.
+
+### Assessment
+
+The traffic appears **normal and expected**. No evidence of NTP amplification, flooding, or other malicious activity was observed.
+
+**Final Classification:** `Benign / Expected Infrastructure Traffic`
+
+
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
