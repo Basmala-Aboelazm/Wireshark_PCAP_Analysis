@@ -1493,7 +1493,7 @@ Since `192.168.56.101` was identified as a **Metasploitable2 training VM**, the 
 
 ### Evidence
 
-The capture shows automated **Nmap reconnaissance**, including TCP/UDP scanning and HTTP service detection.
+The capture shows automated **Nmap reconnaissance**, including TCP scanning and HTTP service detection.
 
 ```text
 1254: GET  /nmaplowercheck1645040178 HTTP/1.1
@@ -1529,9 +1529,7 @@ Port **8180** returned successful HTTP responses, indicating an active web servi
 
 The HTTP traffic is consistent with **automated Nmap service/version detection**, rather than manual browsing or exploitation.
 
-Combined with the previously observed TCP/UDP scans and service banners, this represents a systematic reconnaissance process against the Metasploitable2 target.
-
-**Final Classification:** `Expected Penetration Testing / Lab Activity`
+Combined with the previously observed TCP scans and service banners, this represents a systematic reconnaissance process against the Metasploitable2 target.
 
 
 
