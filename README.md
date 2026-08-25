@@ -1128,8 +1128,6 @@ FTP Directory Enumeration
      ↓
 Telnet Connection
 ```
-
-This creates a stronger behavioral correlation than analyzing the Telnet session in isolation.
 -----
 
 
