@@ -995,12 +995,6 @@ vsFTPd 2.3.4
 
 This version is security-sensitive because a **trojanized/backdoored distribution of vsFTPd 2.3.4** was historically distributed and associated with **CVE-2011-2523**.
 
-However, the banner alone does **not** prove that this particular server contains the backdoored build.
-
-Therefore, the correct conclusion is:
-
-> The version should be verified and investigated, but the PCAP does not by itself prove exploitation or the presence of the backdoor.
-
 ---
 
 ### 3. Directory Enumeration
