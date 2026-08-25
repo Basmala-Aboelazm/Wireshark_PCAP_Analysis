@@ -872,28 +872,6 @@ Base64 ≠ Encryption
 
 Base64 only converts binary/text data into a different character representation. Anyone who captures the packet can decode it without needing an encryption key.
 
-### Conclusion
-
-The capture demonstrates a **successful plaintext POP3 authentication followed by email retrieval**.
-
-Because no TLS/STARTTLS negotiation was observed, the session does not adequately protect the authentication exchange or the email content from network interception.
-
-**Final Classification: Security Finding / High Risk**
-
-### Recommendation
-
-In a production environment:
-
-* Use **POP3S over TCP port 995** with TLS.
-* Alternatively, enforce **STARTTLS** before authentication on port 110.
-* Disable plaintext authentication when encryption is not active.
-* Avoid transmitting sensitive email credentials over unencrypted connections.
-* Verify whether `10.0.2.15` is authorized to communicate with the external mail server `162.241.224.77`.
-* Consider rotating the exposed credentials if this traffic originated from a real production environment.
-
-
-
-
 
 
 
