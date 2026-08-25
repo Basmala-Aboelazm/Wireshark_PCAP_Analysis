@@ -1589,23 +1589,15 @@ This is a **benign and properly secured SMTP session**.
 
 ### What is NTP?
 
-**NTP (Network Time Protocol)** is a network protocol used to **synchronize the clocks of computers and network devices** over a network.
+**NTP (Network Time Protocol)** is a protocol used to **synchronize the clocks of computers, servers, and network devices** over a network.
 
-Accurate time is important for:
-
-* Log correlation and incident investigation
-* Authentication systems
-* Certificates
-* Network monitoring
-* Scheduling and system operations
-
-NTP commonly uses **UDP port 123**.
+NTP commonly uses **UDP port 123**. Accurate time synchronization is important for system logs, authentication, monitoring, and correlating security events.
 
 ### Classification
 
 **Benign / Expected Infrastructure Traffic**
 
-### Endpoint
+### Endpoints
 
 * **NTP Host:** `192.168.50.50`
 * **External NTP Servers:** 14 different public IP addresses
@@ -1620,51 +1612,35 @@ NTP commonly uses **UDP port 123**.
             NTP Symmetric Passive
 ```
 
-### Analysis
+### Why is this traffic normal?
 
-`192.168.50.50` contacted multiple external NTP servers in rapid succession, and each server responded.
+The observed traffic follows a typical **NTP synchronization pattern**:
 
-This behavior is consistent with **time synchronization using multiple time sources** for accuracy and redundancy.
+1. `192.168.50.50` contacts multiple NTP servers to obtain accurate time information.
+2. Each NTP server responds to the host.
+3. Using multiple time sources provides **redundancy and more reliable time synchronization**.
+4. The communication is distributed across multiple servers rather than continuously targeting a single host.
+5. The request/response pattern is consistent with normal NTP communication.
 
-### Assessment
+### Why is it not an NTP attack?
 
-The traffic appears **normal and expected**. No evidence of NTP amplification, flooding, or other malicious activity was observed.
+There are no clear indicators of an **NTP amplification attack**.
+
+An NTP amplification attack typically involves spoofing the victim's IP address and sending requests to NTP servers, causing the servers to send larger responses toward the victim.
+
+In this capture:
+
+* `192.168.50.50` communicates directly with multiple NTP servers.
+* Each request receives a corresponding response.
+* No abnormal flooding is observed.
+* No single victim is being repeatedly targeted.
+* No unusually large responses are observed.
+
+### Conclusion
+
+The traffic is consistent with **legitimate NTP time synchronization**. Contacting multiple time servers is a common practice for improving **accuracy, reliability, and redundancy**.
 
 **Final Classification:** `Benign / Expected Infrastructure Traffic`
 
 
 -------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
